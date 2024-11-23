@@ -7,7 +7,8 @@ enum TRIGGER_ID {
   FOCUS = 'CAMERA_FOCUS',
   TIME = 'TIME_REMAP',
   SKIN = 'CUSTOM_SKIN',
-  GRAVITY = 'GRAVITY'
+  GRAVITY = 'GRAVITY',
+  LAYER = 'LAYER'
 }
 
 type TriggerTime = [number, number, number]
@@ -18,9 +19,10 @@ type CameraFocusTrigger = [TriggerTime, number[]]
 type TimeRemapTrigger = [TriggerTime, number]
 interface SkinCssTrigger { [property: string]: { stroke?: string, fill?: string } }
 type GravityTrigger = [TriggerTime, [{ x: number, y: number }]]
+type LayerTrigger = [number, boolean, Array<number>]
 
 type TimedTrigger = ZoomTrigger | CameraPanTrigger | CameraFocusTrigger | TimeRemapTrigger | GravityTrigger
-type Trigger = TimedTrigger | SkinCssTrigger
+type Trigger = TimedTrigger | SkinCssTrigger | LayerTrigger
 
 interface TriggerMetadata<Type> {
   readonly DISPLAY_NAME: string
@@ -92,13 +94,20 @@ const GravityMetadata: TriggerMetadata<GravityTrigger> = {
   TEMPLATE: [[0, 0, 0], [{ x: 0, y: 0.175 }]]
 }
 
+const LayerMetadata: TriggerMetadata<LayerTrigger> = {
+  DISPLAY_NAME: 'Layers',
+  FUNC: '',
+  TEMPLATE: [0, false, [1]] // [ID, Cyclic, U32[] interpreted as boolean[]]
+}
+
 const TRIGGER_PROPS = {
   [TRIGGER_ID.ZOOM]: ZoomMetadata,
   [TRIGGER_ID.PAN]: CameraPanMetadata,
   [TRIGGER_ID.FOCUS]: CameraFocusMetadata,
   [TRIGGER_ID.TIME]: TimeRemapMetadata,
   [TRIGGER_ID.SKIN]: SkinCssMetadata,
-  [TRIGGER_ID.GRAVITY]: GravityMetadata
+  [TRIGGER_ID.GRAVITY]: GravityMetadata,
+  [TRIGGER_ID.LAYER]: LayerMetadata
 }
 
 interface TriggerDataItem {
@@ -115,6 +124,7 @@ interface TriggerData {
   [TRIGGER_ID.TIME]: TriggerDataItem
   [TRIGGER_ID.SKIN]: TriggerDataItem
   [TRIGGER_ID.GRAVITY]: TriggerDataItem
+  [TRIGGER_ID.LAYER]: TriggerDataItem
 }
 
 class TriggerDataManager {
@@ -157,6 +167,10 @@ class TriggerDataManager {
       [TRIGGER_ID.GRAVITY]: {
         id: TRIGGER_ID.GRAVITY,
         triggers: [structuredClone(TRIGGER_PROPS[TRIGGER_ID.GRAVITY].TEMPLATE)]
+      },
+      [TRIGGER_ID.LAYER]: {
+        id: TRIGGER_ID.LAYER,
+        triggers: [structuredClone(TRIGGER_PROPS[TRIGGER_ID.LAYER].TEMPLATE)]
       }
     }
   }
@@ -222,6 +236,30 @@ class TriggerDataManager {
     }
 
     this.triggerData[TRIGGER_ID.SKIN].triggers = skinTriggers
+  }
+
+  /**
+   * Resizes the layer trigger array to match the layers based on ids
+   */
+  updateLayerIds (layerIds: number[]): void {
+    const layerTriggers = this.triggerData[TRIGGER_ID.LAYER].triggers as LayerTrigger[]
+    const newLayerTriggers = [] as LayerTrigger[]
+
+    let pointer = 0
+
+    for (let i = 0; i < layerIds.length; i++) {
+      while (pointer < layerTriggers.length && layerTriggers[pointer][0] !== layerIds[i]) {
+        pointer += 1
+      }
+      if (pointer < layerTriggers.length) {
+        newLayerTriggers.push(layerTriggers[pointer])
+      } else {
+        newLayerTriggers.push(structuredClone(TRIGGER_PROPS[TRIGGER_ID.LAYER].TEMPLATE))
+        newLayerTriggers[newLayerTriggers.length - 1][0] = layerIds[i]
+      }
+    }
+
+    this.triggerData[TRIGGER_ID.LAYER].triggers = newLayerTriggers
   }
 
   updateFromPath (path: any[], newValue: any, location: TRIGGER_ID): void {

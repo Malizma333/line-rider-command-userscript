@@ -53,7 +53,7 @@ const STYLES = {
     flexDirection: 'column',
     justifyContent: 'center',
     paddingTop: '1vh',
-    width: 'clamp(425px, 40vw, 650px)'
+    width: 'clamp(475px, 40vw, 650px)'
   },
   button: {
     embedded: {
@@ -409,6 +409,64 @@ const STYLES = {
     },
     id_scarf5: {
       strokeWidth: '0', x: '-10', width: '2', height: '2'
+    }
+  },
+  layer: {
+    editor: {
+      backgroundColor: GLOBAL_STYLES.white,
+      display: 'flex',
+      flexDirection: 'row',
+      flex: 9,
+      overflowX: 'hidden',
+      overflowY: 'scroll',
+      width: '100%'
+    },
+    metadata: {
+      backgroundColor: GLOBAL_STYLES.white,
+      flex: 1,
+      borderRight: '1px solid black'
+    },
+    metadataBlock: {
+      height: '50px',
+      display: 'flex',
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderBottom: '1px solid black',
+      padding: '0 1em',
+      boxSizing: 'border-box'
+    },
+    arrayView: {
+      backgroundColor: GLOBAL_STYLES.white,
+      flex: 6
+    },
+    array: {
+      backgroundColor: GLOBAL_STYLES.white,
+      height: '50px',
+      display: 'flex',
+      flexDirection: 'row',
+      borderBottom: '1px solid black',
+      boxSizing: 'border-box'
+    },
+    arrayBlock: {
+      backgroundColor: GLOBAL_STYLES.black,
+      height: '100%',
+      aspectRatio: '1/1'
+    },
+    arrayBlock2: {
+      backgroundColor: GLOBAL_STYLES.white,
+      height: '100%',
+      aspectRatio: '1/1'
+    },
+    timeline: {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      flex: 1,
+      width: '100%'
+    },
+    timelineSlider: {
+      width: '90%'
     }
   }
 } as const

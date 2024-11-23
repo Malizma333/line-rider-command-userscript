@@ -21,7 +21,9 @@ function InitRoot (): ReactComponent { // eslint-disable-line @typescript-eslint
     fontSizeSetting: number
     resolutionSetting: ViewportOption
     invalidTimes: boolean[]
-    toolbarColors: TOOLBAR_COLOR[]
+    toolbarColors: TOOLBAR_COLOR[],
+    layerTimelineIndex: number,
+    layerTimelineMax: number
   }
 
   class RootComponent extends React.Component {
@@ -52,7 +54,9 @@ function InitRoot (): ReactComponent { // eslint-disable-line @typescript-eslint
         fontSizeSetting: parseInt(getSetting(SETTINGS_KEY.FONT_SIZE), 10),
         resolutionSetting: getSetting(SETTINGS_KEY.VIEWPORT) as ViewportOption,
         invalidTimes: [],
-        toolbarColors: Array(16).fill(TOOLBAR_COLOR.NONE)
+        toolbarColors: Array(16).fill(TOOLBAR_COLOR.NONE),
+        layerTimelineIndex: 0,
+        layerTimelineMax: 1200
       }
 
       store.subscribe(() => this.updateStore(store.getState()))
@@ -97,6 +101,25 @@ function InitRoot (): ReactComponent { // eslint-disable-line @typescript-eslint
 
       rootElement.style.opacity = shouldBeVisible ? '1' : '0'
       rootElement.style.pointerEvents = shouldBeVisible ? 'auto' : 'none'
+
+      const timelineIndex = getPlayerIndex(nextState)
+
+      if (timelineIndex !== this.state.layerTimelineIndex) {
+        this.setState({ layerTimelineIndex: timelineIndex })
+      }
+
+      const maxIndex = getPlayerMaxIndex(nextState)
+      
+      if (maxIndex !== this.state.layerTimelineMax) {
+        this.setState({ layerTimelineMax: maxIndex })
+      }
+
+      const layerIds = getLayerIds(nextState)
+
+      if (layerIds.length !== this.triggerManager.data[TRIGGER_ID.LAYER].triggers.length) {
+        this.triggerManager.updateLayerIds(layerIds)
+        this.setState({ triggerUpdateFlag: !this.state.triggerUpdateFlag })
+      }
     }
 
     onUpdateToolbarColor (index: number, state: TOOLBAR_COLOR): void {
@@ -455,6 +478,10 @@ function InitRoot (): ReactComponent { // eslint-disable-line @typescript-eslint
       this.setState({ skinEditorZoom: [newScale, newXOffset, newYOffset] })
     }
 
+    onNavLayerTimeline (newIndex: number): void {
+      this.setState({ layerTimelineIndex: newIndex })
+    }
+
     render (): ReactComponent {
       this.componentManager.updateState(this.state)
       return this.componentManager.main()
@@ -770,18 +797,19 @@ function InitRoot (): ReactComponent { // eslint-disable-line @typescript-eslint
         )
       }
 
-      if (data.id === TRIGGER_ID.GRAVITY) {
+      if (data.id === TRIGGER_ID.LAYER) {
         return e(
           'div',
-          { style: STYLES.window },
-          Object.keys(data.triggers).map((i) => this.trigger(parseInt(i, 10)))
+          { style: { ...STYLES.window, overflowY: 'hidden' } },
+          this.layerAutomationEditor(data.triggers as LayerTrigger[]),
+          this.layerAutomationTimeline()
         )
       }
 
       return e(
         'div',
         { style: STYLES.window },
-        this.smoothTab(),
+        data.id !== TRIGGER_ID.GRAVITY && this.smoothTab(),
         Object.keys(data.triggers).map((i) => this.trigger(parseInt(i, 10)))
       )
     }
@@ -876,12 +904,11 @@ function InitRoot (): ReactComponent { // eslint-disable-line @typescript-eslint
             }
           })
         ),
-        data.id !== TRIGGER_ID.SKIN && this.timeStamp((currentTrigger as TimedTrigger)[0], index),
+        this.timeStamp((currentTrigger as TimedTrigger)[0], index),
         data.id === TRIGGER_ID.ZOOM && this.zoomTrigger((currentTrigger as ZoomTrigger), index),
         data.id === TRIGGER_ID.PAN && this.cameraPanTrigger((currentTrigger as CameraPanTrigger), index),
         data.id === TRIGGER_ID.FOCUS && this.cameraFocusTrigger((currentTrigger as CameraFocusTrigger), index),
         data.id === TRIGGER_ID.TIME && this.timeRemapTrigger((currentTrigger as TimeRemapTrigger), index),
-        data.id === TRIGGER_ID.SKIN && false,
         data.id === TRIGGER_ID.GRAVITY && this.gravityTrigger((currentTrigger as GravityTrigger), index),
         e(
           'button',
@@ -1471,6 +1498,97 @@ function InitRoot (): ReactComponent { // eslint-disable-line @typescript-eslint
           fill: data.armSleeve.fill,
           onClick: () => root.onUpdateTrigger({ new: color }, ['triggers', index, 'armSleeve', 'fill'])
         })
+      )
+    }
+
+    layerAutomationTimeline (): ReactComponent {
+      const { state, root } = this
+
+      return e(
+        'div',
+        { style: STYLES.layer.timeline },
+        e('input', {
+          id: 'layerTimelineSlider',
+          style: STYLES.layer.timelineSlider,
+          type: 'range',
+          min: 0,
+          max: state.layerTimelineMax,
+          step: 1,
+          value: state.layerTimelineIndex,
+          onChange: (e: Event) => root.onNavLayerTimeline(parseInt((e.target as HTMLInputElement).value))
+        })
+      )
+    }
+
+    layerAutomationEditor (data: LayerTrigger[]): ReactComponent {
+      return e(
+        'div',
+        { style: STYLES.layer.editor },
+        e(
+          'div',
+          { style: STYLES.layer.metadata },
+          data.map((trigger) => this.layerTriggerMetadata(trigger))
+        ),
+        e(
+          'div',
+          { style: STYLES.layer.arrayView },
+          data.map((trigger) => this.layerTriggerArray(trigger))
+        )
+      )
+    }
+
+    layerTriggerMetadata (data: LayerTrigger): ReactComponent {
+      const { state } = this
+
+      return e(
+        'div',
+        { style: STYLES.layer.metadataBlock },
+        e(
+          'text',
+          { style: { fontSize: GLOBAL_STYLES.textSizes.L[0] } },
+          data[0]
+        ),
+        e(
+          'button',
+          {
+            style: {
+              ...STYLES.button.embedded,
+              marginLeft: '1em'
+            },
+            title: "Toggle Looping",
+            onClick: () => {console.log("test")}
+          },
+          e('span', {
+            ...FICON_REFRESH_CW, style: { color: data[1] ? GLOBAL_STYLES.black : GLOBAL_STYLES.gray }
+          })
+        )
+      )
+    }
+
+    layerTriggerArray (data: LayerTrigger): ReactComponent {
+      return e(
+        'div',
+        { style: STYLES.layer.array },
+        e('div', { style: STYLES.layer.arrayBlock }),
+        e('div', { style: STYLES.layer.arrayBlock2 }),
+        e('div', { style: STYLES.layer.arrayBlock2 }),
+        e('div', { style: STYLES.layer.arrayBlock2 }),
+        e('div', { style: STYLES.layer.arrayBlock }),
+        e('div', { style: STYLES.layer.arrayBlock }),
+        e('div', { style: STYLES.layer.arrayBlock }),
+        e('div', { style: STYLES.layer.arrayBlock }),
+        e('div', { style: STYLES.layer.arrayBlock2 }),
+        e('div', { style: STYLES.layer.arrayBlock2 }),
+        e('div', { style: STYLES.layer.arrayBlock }),
+        e('div', { style: STYLES.layer.arrayBlock2 }),
+        e('div', { style: STYLES.layer.arrayBlock2 }),
+        e('div', { style: STYLES.layer.arrayBlock2 }),
+        e('div', { style: STYLES.layer.arrayBlock }),
+        e('div', { style: STYLES.layer.arrayBlock }),
+        e('div', { style: STYLES.layer.arrayBlock }),
+        e('div', { style: STYLES.layer.arrayBlock }),
+        e('div', { style: STYLES.layer.arrayBlock2 }),
+        e('div', { style: STYLES.layer.arrayBlock2 })
       )
     }
   }
