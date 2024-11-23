@@ -1527,18 +1527,18 @@ function InitRoot (): ReactComponent { // eslint-disable-line @typescript-eslint
         e(
           'div',
           { style: STYLES.layer.metadata },
-          data.map((trigger) => this.layerTriggerMetadata(trigger))
+          data.map((trigger, index) => this.layerTriggerMetadata(trigger, index))
         ),
         e(
           'div',
           { style: STYLES.layer.arrayView },
-          data.map((trigger) => this.layerTriggerArray(trigger))
+          data.map((trigger, index) => this.layerTriggerArray(trigger, index))
         )
       )
     }
 
-    layerTriggerMetadata (data: LayerTrigger): ReactComponent {
-      const { state } = this
+    layerTriggerMetadata (data: LayerTrigger, index: number): ReactComponent {
+      const { root } = this
 
       return e(
         'div',
@@ -1556,7 +1556,11 @@ function InitRoot (): ReactComponent { // eslint-disable-line @typescript-eslint
               marginLeft: '1em'
             },
             title: "Toggle Looping",
-            onClick: () => {console.log("test")}
+            onClick: () => root.onUpdateTrigger(
+              { prev: data[1], new: !data[1] },
+              ['triggers', index, 1],
+              CONSTRAINTS.LAYER_LOOP
+            ),
           },
           e('span', {
             ...FICON_REFRESH_CW, style: { color: data[1] ? GLOBAL_STYLES.black : GLOBAL_STYLES.gray }
@@ -1565,7 +1569,7 @@ function InitRoot (): ReactComponent { // eslint-disable-line @typescript-eslint
       )
     }
 
-    layerTriggerArray (data: LayerTrigger): ReactComponent {
+    layerTriggerArray (data: LayerTrigger, index: number): ReactComponent {
       return e(
         'div',
         { style: STYLES.layer.array },

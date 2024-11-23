@@ -61,6 +61,9 @@ const CONSTRAINTS = {
   },
   GRAVITY_Y: {
     DEFAULT: 0, MIN: -100, MAX: 100, INT: false
+  },
+  LAYER_LOOP: {
+    DEFAULT: false
   }
 } as const
 
