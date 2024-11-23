@@ -423,8 +423,7 @@ const STYLES = {
     },
     metadata: {
       backgroundColor: GLOBAL_STYLES.white,
-      flex: 1,
-      borderRight: '1px solid black'
+      flex: 1
     },
     metadataBlock: {
       height: '50px',
@@ -433,6 +432,7 @@ const STYLES = {
       alignItems: 'center',
       justifyContent: 'center',
       borderBottom: '1px solid black',
+      borderRight: '5px double black',
       padding: '0 1em',
       boxSizing: 'border-box'
     },
@@ -462,6 +462,7 @@ const STYLES = {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
+      borderTop: '3px solid black',
       flex: 1,
       width: '100%'
     },
