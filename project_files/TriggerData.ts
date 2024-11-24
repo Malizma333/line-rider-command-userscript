@@ -97,7 +97,7 @@ const GravityMetadata: TriggerMetadata<GravityTrigger> = {
 const LayerMetadata: TriggerMetadata<LayerTrigger> = {
   DISPLAY_NAME: 'Layers',
   FUNC: '',
-  TEMPLATE: [0, false, [1]] // [ID, Cyclic, U32[] interpreted as boolean[]]
+  TEMPLATE: [0, false, [1]] // U8 encoded true/false array
 }
 
 const TRIGGER_PROPS = {

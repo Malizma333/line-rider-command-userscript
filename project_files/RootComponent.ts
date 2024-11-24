@@ -1570,29 +1570,45 @@ function InitRoot (): ReactComponent { // eslint-disable-line @typescript-eslint
     }
 
     layerTriggerArray (data: LayerTrigger, index: number): ReactComponent {
+      const { state, root } = this
+
+      let slicedView = []
+
+      for (let i = 0; i < 10; i++) {
+        const j = state.layerTimelineIndex + i
+        if ((j >> 3) < data[2].length) {
+          const value = data[2][j >> 3]
+          slicedView.push(((value >> (j & 7)) & 1) === 1)
+        } else {
+          slicedView.push(false)
+        }
+      }
+
       return e(
         'div',
         { style: STYLES.layer.array },
-        e('div', { style: STYLES.layer.arrayBlock }),
-        e('div', { style: STYLES.layer.arrayBlock2 }),
-        e('div', { style: STYLES.layer.arrayBlock2 }),
-        e('div', { style: STYLES.layer.arrayBlock2 }),
-        e('div', { style: STYLES.layer.arrayBlock }),
-        e('div', { style: STYLES.layer.arrayBlock }),
-        e('div', { style: STYLES.layer.arrayBlock }),
-        e('div', { style: STYLES.layer.arrayBlock }),
-        e('div', { style: STYLES.layer.arrayBlock2 }),
-        e('div', { style: STYLES.layer.arrayBlock2 }),
-        e('div', { style: STYLES.layer.arrayBlock }),
-        e('div', { style: STYLES.layer.arrayBlock2 }),
-        e('div', { style: STYLES.layer.arrayBlock2 }),
-        e('div', { style: STYLES.layer.arrayBlock2 }),
-        e('div', { style: STYLES.layer.arrayBlock }),
-        e('div', { style: STYLES.layer.arrayBlock }),
-        e('div', { style: STYLES.layer.arrayBlock }),
-        e('div', { style: STYLES.layer.arrayBlock }),
-        e('div', { style: STYLES.layer.arrayBlock2 }),
-        e('div', { style: STYLES.layer.arrayBlock2 })
+        slicedView.map((visible, i) => {
+          let arrIndex = (state.layerTimelineIndex + i) >> 3
+          let bitMask = 1 << ((state.layerTimelineIndex + i) & 7)
+          
+          return e(
+            'div',
+            {
+              style: {
+                ...STYLES.layer.arrayBlock,
+                backgroundColor: visible ? GLOBAL_STYLES.black : GLOBAL_STYLES.white
+              },
+              onClick: () => root.onUpdateTrigger(
+                {
+                  prev: data[2][arrIndex],
+                  new: (data[2][arrIndex] ^ bitMask).toString()
+                },
+                ['triggers', index, 2, (state.layerTimelineIndex + i) >> 3],
+                CONSTRAINTS.LAYER_BYTE
+              ),
+            }
+          )
+        })
       )
     }
   }

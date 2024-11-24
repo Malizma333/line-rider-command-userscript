@@ -441,7 +441,7 @@ const STYLES = {
       flex: 6
     },
     array: {
-      backgroundColor: GLOBAL_STYLES.white,
+      backgroundColor: GLOBAL_STYLES.gray,
       height: '50px',
       display: 'flex',
       flexDirection: 'row',
@@ -449,12 +449,6 @@ const STYLES = {
       boxSizing: 'border-box'
     },
     arrayBlock: {
-      backgroundColor: GLOBAL_STYLES.black,
-      height: '100%',
-      aspectRatio: '1/1'
-    },
-    arrayBlock2: {
-      backgroundColor: GLOBAL_STYLES.white,
       height: '100%',
       aspectRatio: '1/1'
     },

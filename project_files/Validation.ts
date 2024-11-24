@@ -64,6 +64,9 @@ const CONSTRAINTS = {
   },
   LAYER_LOOP: {
     DEFAULT: false
+  },
+  LAYER_BYTE: {
+    DEFAULT: 1, MIN: 0, MAX: 255, INT: true
   }
 } as const
 
